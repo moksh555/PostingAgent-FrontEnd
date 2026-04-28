@@ -1,14 +1,13 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import DashboardSidebar from "../components/layout/DashboardSidebar";
 
-const DashBoardPage = () => {
-  return (
-    <div>
-      <NavLink to="/dashboard/form">Form</NavLink>
-      <NavLink to="/dashboard/output">Output</NavLink>
-      <NavLink to="/dashboard/pastRun">Past Run</NavLink>
+const DashBoardPage = () => (
+  <div className="flex min-h-screen w-full">
+    <DashboardSidebar />
+    <div className="min-w-0 flex-1">
       <Outlet />
     </div>
-  );
-};
+  </div>
+);
 
 export default DashBoardPage;
