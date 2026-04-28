@@ -1,0 +1,296 @@
+@import "tailwindcss";
+
+/* Class strategy: `<html class="dark">` — wire a button to `toggleTheme()` from `src/lib/theme.ts` */
+@custom-variant dark (&:where(html.dark, html.dark *));
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light: white field + soft black in gradients; text black */
+html:not(.dark) body {
+  color-scheme: light;
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(ellipse 120% 85% at 100% -10%, rgba(0, 0, 0, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 90% 70% at -5% 105%, rgba(0, 0, 0, 0.1) 0%, transparent 48%),
+    linear-gradient(168deg, #ffffff 0%, #ffffff 42%, rgba(0, 0, 0, 0.06) 100%);
+}
+
+/* Dark: black field + soft white in gradients; text white */
+html.dark body {
+  color-scheme: dark;
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ffffff;
+  background-color: #000000;
+  background-image:
+    radial-gradient(ellipse 120% 85% at 100% -10%, rgba(255, 255, 255, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 90% 70% at -5% 105%, rgba(255, 255, 255, 0.1) 0%, transparent 48%),
+    linear-gradient(168deg, #000000 0%, #000000 42%, rgba(255, 255, 255, 0.06) 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+html:not(.dark) code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.45em;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  color: #000000;
+}
+
+html.dark code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.45em;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+/* Use :where() to keep specificity at 0 so Tailwind utilities (text-black, etc.) always win. */
+:where(html:not(.dark)) :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+:where(html.dark) :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------------
+   Inverted surface (single class — beats Tailwind cascade conflicts).
+   - light mode: black bg + white text
+   - dark mode:  white bg + black text
+------------------------------------------------------------------- */
+.surface-invert {
+  background-color: #000;
+  color: #fff;
+}
+.surface-invert:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+html.dark .surface-invert {
+  background-color: #fff;
+  color: #000;
+}
+html.dark .surface-invert:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Outline counterpart — transparent bg, current-mode text + border. */
+.surface-outline {
+  background-color: transparent;
+  color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+.surface-outline:hover {
+  border-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+html.dark .surface-outline {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+html.dark .surface-outline:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Reverse of surface-invert — used inside an already-inverted block
+   (e.g. the final CTA banner) so the inner button still contrasts. */
+.surface-revert {
+  background-color: #fff;
+  color: #000;
+}
+.surface-revert:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+html.dark .surface-revert {
+  background-color: #000;
+  color: #fff;
+}
+html.dark .surface-revert:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Outline counterpart for inside an inverted block. */
+.surface-revert-outline {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.surface-revert-outline:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+html.dark .surface-revert-outline {
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.3);
+}
+html.dark .surface-revert-outline:hover {
+  border-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Decorative utilities used by HomePage / cards ---------- */
+
+/* Subtle grid lines, mode-aware */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+html.dark .bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+}
+
+/* Tiny dot grid */
+.bg-dots {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.18) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+html.dark .bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+}
+
+/* Slow drifting conic gradient — mode-aware */
+.bg-aurora {
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(0, 0, 0, 0) 0deg,
+    rgba(0, 0, 0, 0.18) 80deg,
+    rgba(0, 0, 0, 0) 160deg,
+    rgba(0, 0, 0, 0.18) 240deg,
+    rgba(0, 0, 0, 0) 320deg,
+    rgba(0, 0, 0, 0) 360deg
+  );
+  animation: aurora-spin 22s linear infinite;
+}
+html.dark .bg-aurora {
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0.18) 80deg,
+    rgba(255, 255, 255, 0) 160deg,
+    rgba(255, 255, 255, 0.2) 240deg,
+    rgba(255, 255, 255, 0) 320deg,
+    rgba(255, 255, 255, 0) 360deg
+  );
+}
+@keyframes aurora-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Shimmer line that sweeps across an element on hover */
+.shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(0, 0, 0, 0.12) 45%,
+    rgba(0, 0, 0, 0.06) 50%,
+    transparent 65%
+  );
+  background-size: 250% 100%;
+  background-position: 200% 0;
+  transition: background-position 700ms ease;
+}
+html.dark .shimmer {
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 45%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 65%
+  );
+  background-size: 250% 100%;
+  background-position: 200% 0;
+}
+.group:hover .shimmer {
+  background-position: -50% 0;
+}
+
+/* Slow float for the hero orb */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.04);
+  }
+}
+.animate-float-slow {
+  animation: float-slow 9s ease-in-out infinite;
+}
+
+/* Marching dashed border (used on the connector line) */
+@keyframes dash-march {
+  to {
+    background-position: 200px 0;
+  }
+}
+.dash-march {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  background-size: 16px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 0;
+  animation: dash-march 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .bg-aurora,
+  .dash-march {
+    animation: none !important;
+  }
+}
