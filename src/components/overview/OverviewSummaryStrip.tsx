@@ -1,12 +1,12 @@
 import { StatCard, type StatCardProps } from "../ui";
 
-type RunsSummaryStatsProps = {
+type OverviewSummaryStripProps = {
   cards: readonly StatCardProps[];
 };
 
-const RunsSummaryStats = ({ cards }: RunsSummaryStatsProps) => (
+const OverviewSummaryStrip = ({ cards }: OverviewSummaryStripProps) => (
   <section
-    aria-label="Run summary"
+    aria-label="Overview summary"
     className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
   >
     {cards.map((c) => (
@@ -15,5 +15,4 @@ const RunsSummaryStats = ({ cards }: RunsSummaryStatsProps) => (
   </section>
 );
 
-export default RunsSummaryStats;
-export type { StatCardProps as RunsSummaryStat };
+export default OverviewSummaryStrip;

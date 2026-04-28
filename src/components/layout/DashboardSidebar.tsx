@@ -15,11 +15,12 @@ type NavItem = {
   label: string;
   icon: IconComponent;
   to?: string;
+  end?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Overview", icon: HomeIcon },
-  { label: "New run", icon: PlusCircleIcon, to: "/dashboard/form" },
+  { label: "Overview", icon: HomeIcon, to: "/dashboard", end: true },
+  { label: "New run", icon: PlusCircleIcon, to: "/dashboard/form", end: true },
   { label: "Runs", icon: ListIcon, to: "/dashboard/pastRun" },
   { label: "Settings", icon: CogIcon },
 ];
@@ -61,9 +62,9 @@ const DashboardSidebar = () => (
     </Link>
 
     <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
-      {NAV_ITEMS.map(({ label, icon: Icon, to }) =>
+      {NAV_ITEMS.map(({ label, icon: Icon, to, end }) =>
         to ? (
-          <NavLink key={label} to={to} className={linkClass} end={to === "/dashboard/form"}>
+          <NavLink key={label} to={to} className={linkClass} end={end}>
             <Icon size={18} />
             <span>{label}</span>
           </NavLink>

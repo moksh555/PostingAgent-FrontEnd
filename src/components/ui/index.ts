@@ -8,6 +8,9 @@ export { default as Pill } from "./Pill";
 export { default as SectionHeader } from "./SectionHeader";
 export { default as ShortCard } from "./ShortCard";
 
+export { default as StatCard } from "./StatCard";
+export type { StatCardProps } from "./StatCard";
+
 export { default as StatGrid } from "./StatGrid";
 export type { Stat } from "./StatGrid";
 
