@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, SubmitEventHandler } from "react";
 import { Button } from "../ui";
 import { CalendarIcon, ChevronDownIcon, MapPinIcon } from "./icons";
 
@@ -19,7 +19,15 @@ const POST_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const fieldShell =
   "rounded-xl border border-black/10 bg-white/70 px-3.5 py-3 text-sm text-black placeholder:text-black/40 outline-none transition focus-within:border-black/40 focus-within:ring-2 focus-within:ring-black/10 dark:border-white/10 dark:bg-white/4 dark:text-white dark:placeholder:text-white/35 dark:focus-within:border-white/40 dark:focus-within:ring-white/10";
 
-const Field = ({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) => (
+const Field = ({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+}) => (
   <div className="flex flex-col gap-2">
     <label
       htmlFor={htmlFor}
@@ -42,7 +50,8 @@ const CampaignSetupForm = ({
   onSubmit,
   onCancel,
 }: CampaignSetupFormProps) => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     onSubmit();
   };
@@ -75,7 +84,9 @@ const CampaignSetupForm = ({
             <select
               id="campaign-posts"
               value={numberOfPosts}
-              onChange={(event) => onNumberOfPostsChange(Number(event.target.value))}
+              onChange={(event) =>
+                onNumberOfPostsChange(Number(event.target.value))
+              }
               className={`${fieldShell} w-full appearance-none pr-10`}
             >
               {POST_COUNTS.map((n) => (
@@ -113,10 +124,20 @@ const CampaignSetupForm = ({
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-3 pt-2">
-        <Button type="submit" variant="invert" disabled={isRunning} className="w-full justify-center">
+        <Button
+          type="submit"
+          variant="invert"
+          disabled={isRunning}
+          className="w-full justify-center"
+        >
           START RUN
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel} className="w-full justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="w-full justify-center"
+        >
           CANCEL
         </Button>
       </div>

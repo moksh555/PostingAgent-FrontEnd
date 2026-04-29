@@ -12,3 +12,11 @@ export type Draft = {
   publishAt?: string;
   body: string;
 };
+
+/** LangGraph node streamed as `APIResponse(state=updates, body.node=…)`. */
+export type PipelineStep = {
+  node: string;
+  label: string;
+  /** ms since epoch when the update was received */
+  at: number;
+};

@@ -20,15 +20,24 @@ const CurrentDraftReview = ({
 }: CurrentDraftReviewProps) => {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notes, setNotes] = useState("");
+  const [notesError, setNotesError] = useState<string | null>(null);
 
   const handleRegenerate = () => {
-    onRegenerate(notes.trim());
+    const feedback = notes.trim();
+    if (!feedback) {
+      setNotesOpen(true);
+      setNotesError("Add feedback before regenerating this draft.");
+      return;
+    }
+
+    onRegenerate(feedback);
     setNotes("");
+    setNotesError(null);
     setNotesOpen(false);
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <div className="flex min-h-0 flex-1 flex-col gap-5">
       <div className="flex items-baseline gap-3">
         <h3 className="text-xl font-semibold tracking-tight">
           Post {draft.index} of {draft.total}
@@ -40,7 +49,7 @@ const CurrentDraftReview = ({
 
       <article
         className={[
-          "min-h-48 flex-1 whitespace-pre-line rounded-xl border px-5 py-4 text-sm leading-relaxed",
+          "max-h-[min(70vh,42rem)] min-h-48 flex-1 overflow-y-auto whitespace-pre-line rounded-xl border px-5 py-4 text-sm leading-relaxed",
           "border-black/10 bg-white/60 text-black/80",
           "dark:border-white/10 dark:bg-white/3 dark:text-white/80",
         ].join(" ")}
@@ -53,11 +62,19 @@ const CurrentDraftReview = ({
           Notes for regenerate
           <textarea
             value={notes}
-            onChange={(event) => setNotes(event.target.value)}
+            onChange={(event) => {
+              setNotes(event.target.value);
+              if (event.target.value.trim()) setNotesError(null);
+            }}
             placeholder="What should change in the next version?"
             rows={3}
             className="rounded-xl border border-black/10 bg-white/70 px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-black placeholder:text-black/40 outline-none transition focus:border-black/40 focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-white/4 dark:text-white dark:placeholder:text-white/35 dark:focus:border-white/40 dark:focus:ring-white/10"
           />
+          {notesError ? (
+            <span className="text-xs font-medium normal-case tracking-normal text-red-600 dark:text-red-400">
+              {notesError}
+            </span>
+          ) : null}
         </label>
       )}
 
