@@ -1,6 +1,5 @@
 import {
   Button,
-  CTABanner,
   FeatureCard,
   Pill,
   SectionHeader,
@@ -125,7 +124,10 @@ const HomePage = () => {
             </Button>
           </div>
 
-          <StreamPreview className="mx-auto mt-16 max-w-3xl" items={previewItems} />
+          <StreamPreview
+            className="mx-auto mt-16 max-w-3xl"
+            items={previewItems}
+          />
         </div>
       </section>
 
@@ -180,15 +182,6 @@ const HomePage = () => {
           ))}
         </div>
       </section>
-
-      {/* FINAL CTA -------------------------------------------------------- */}
-      <CTABanner
-        className="mx-auto max-w-6xl px-4 pb-24 sm:px-6 sm:pb-32"
-        title="Drop in a link. Walk out with a campaign."
-        description="Start a run, review the drafts as they stream, and ship copy that sounds like it came from your team."
-        primary={{ label: "Start a campaign", to: "/dashboard/form" }}
-        secondary={{ label: "See past runs", to: "/past-run" }}
-      />
     </div>
   );
 };

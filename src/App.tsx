@@ -5,7 +5,6 @@ import HomePage from "./routes/HomePage";
 import DashBoardPage from "./routes/DashBoardPage";
 import OverviewPage from "./routes/OverviewPage";
 import FormPage from "./routes/FormPage";
-import OutputPage from "./routes/OutputPage";
 import PastRun from "./routes/PastRun";
 
 const MarketingLayout = () => (
@@ -26,7 +25,6 @@ function App() {
       <Route path="/dashboard" element={<DashBoardPage />}>
         <Route index element={<OverviewPage />} />
         <Route path="form" element={<FormPage />} />
-        <Route path="output" element={<OutputPage />} />
         <Route path="pastRun" element={<PastRun />} />
       </Route>
     </Routes>

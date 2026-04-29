@@ -1,7 +1,6 @@
 export { default as Button } from "./Button";
 export type { ButtonVariant, ButtonSize } from "./Button";
 
-export { default as CTABanner } from "./CTABanner";
 export { default as Eyebrow } from "./Eyebrow";
 export { default as FeatureCard } from "./FeatureCard";
 export { default as Pill } from "./Pill";
