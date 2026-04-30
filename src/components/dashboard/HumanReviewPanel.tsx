@@ -11,6 +11,14 @@ type HumanReviewPanelProps = {
   onAccept: () => void;
   onReject: () => void;
   onRegenerate: (notes: string) => void;
+  carouselNav?: {
+    canGoPrev: boolean;
+    canGoNext: boolean;
+    onPrev: () => void;
+    onNext: () => void;
+  } | null;
+  decisionButtonsEnabled: boolean;
+  browseHint?: string | null;
 };
 
 const PipelineTimeline = ({
@@ -75,6 +83,9 @@ const HumanReviewPanel = ({
   onAccept,
   onReject,
   onRegenerate,
+  carouselNav = null,
+  decisionButtonsEnabled,
+  browseHint = null,
 }: HumanReviewPanelProps) => {
   const awaitingDecision = status === "paused";
   const streaming = status === "connecting" || status === "streaming";
@@ -113,9 +124,12 @@ const HumanReviewPanel = ({
       {draft ? (
         <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden">
           <CurrentDraftReview
-            key={draft.index}
+            key={`${draft.index}-${draft.body.length}`}
             draft={draft}
             awaitingDecision={awaitingDecision}
+            decisionButtonsEnabled={decisionButtonsEnabled}
+            browseHint={browseHint}
+            carouselNav={carouselNav}
             onAccept={onAccept}
             onReject={onReject}
             onRegenerate={onRegenerate}

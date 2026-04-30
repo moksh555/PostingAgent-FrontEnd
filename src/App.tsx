@@ -25,6 +25,7 @@ function App() {
       <Route path="/dashboard" element={<DashBoardPage />}>
         <Route index element={<OverviewPage />} />
         <Route path="form" element={<FormPage />} />
+        <Route path="resume/:threadId" element={<FormPage />} />
         <Route path="pastRun" element={<PastRun />} />
       </Route>
     </Routes>

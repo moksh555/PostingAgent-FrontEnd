@@ -80,9 +80,7 @@ const PastRun = () => {
       : null;
 
   const handleOpen = (run: RunSummary) => {
-    navigate("/dashboard/form", {
-      state: { resumeThreadId: run.threadId },
-    });
+    navigate(`/dashboard/resume/${encodeURIComponent(run.threadId)}`);
   };
 
   return (

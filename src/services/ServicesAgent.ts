@@ -90,6 +90,17 @@ export function threadsListErrorMessage(err: unknown): string {
   return "Failed to load runs.";
 }
 
+/** Completed / paused checkpoint from LangGraph snapshot (same shape as streamed NDJSON result `body`). */
+export async function getAgentThreadSnapshot(
+  threadId: string,
+): Promise<unknown> {
+  const encoded = encodeURIComponent(threadId.trim());
+  const response = await apiClient.get(
+    `/api/v1/agentThreadSnapshot/${encoded}`,
+  );
+  return response.data;
+}
+
 export async function getUserThreadStates(
   userId: string,
 ): Promise<RunSummary[]> {

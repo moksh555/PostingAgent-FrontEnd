@@ -1,9 +1,22 @@
-import { useCallback, useEffect, useRef, useState, startTransition } from "react";
-import { useLocation } from "react-router-dom";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  startTransition,
+} from "react";
+import { useLocation, Link, useNavigate, useParams } from "react-router-dom";
 import CampaignSetupForm from "../components/dashboard/CampaignSetupForm";
 import HumanReviewPanel from "../components/dashboard/HumanReviewPanel";
+import { buildCampaignSlidesFromResultBody } from "../components/dashboard/campaignPosts";
 import { formatPipelineStepLabel } from "../components/dashboard/formatPipelineStepLabel";
-import type { Draft, PipelineStep, RunStatus } from "../components/dashboard/types";
+import type {
+  Draft,
+  PipelineStep,
+  RunStatus,
+} from "../components/dashboard/types";
 import useAgentStream, {
   type AgentStreamEvent,
   type ResumeAgentPayload,
@@ -12,6 +25,10 @@ import useAgentStream, {
   START_AGENT_PATH,
 } from "../hooks/UseAgentStream";
 import { readLangGraphUpdateNode } from "./agentStreamNormalize";
+import {
+  getAgentThreadSnapshot,
+  threadsListErrorMessage,
+} from "../services/ServicesAgent";
 
 const formatPublishDate = (iso: string): string | undefined => {
   if (!iso) return undefined;
@@ -35,6 +52,30 @@ const parsePublishAt = (pd: unknown): string | undefined => {
   if (!s.trim()) return undefined;
   return formatPublishDate(s);
 };
+
+function isoToDatetimeLocal(raw: unknown): string {
+  if (raw === undefined || raw === null) return "";
+  const s =
+    typeof raw === "number" && Number.isFinite(raw)
+      ? new Date(raw).toISOString()
+      : String(raw);
+  if (!s.trim()) return "";
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${day}T${h}:${min}`;
+}
+
+/** Short label for checkpoint thread id (full id in tooltip / aria-label). */
+function threadIdDisplayLabel(threadId: string): string {
+  const t = threadId.trim();
+  if (t.length <= 13) return t;
+  return `${t.slice(0, 8)}…${t.slice(-4)}`;
+}
 
 /** Same as streamed `body` unwrap — doubles as result envelope coercion. */
 function unwrapEnvelopeBody(body: unknown): Record<string, unknown> | null {
@@ -73,7 +114,9 @@ function extractAwaitingDraft(
     if (firstObj && typeof firstObj === "object") {
       const o = firstObj as Record<string, unknown>;
       const pc =
-        typeof o.content === "string" && o.content.trim() ? o.content : undefined;
+        typeof o.content === "string" && o.content.trim()
+          ? o.content
+          : undefined;
       if (pc) return { content: pc, publishDate: o.publishDate };
     }
   }
@@ -119,6 +162,8 @@ function normalizeStreamEvent(raw: unknown): AgentStreamEvent | null {
 
 const FormPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams<{ threadId?: string }>();
   const [url, setUrl] = useState("");
   const [numberOfPosts, setNumberOfPosts] = useState(3);
   const [startDate, setStartDate] = useState("");
@@ -135,24 +180,45 @@ const FormPage = () => {
   const [streamRunId, setStreamRunId] = useState(0);
   const [runError, setRunError] = useState<string | null>(null);
   /** Set only when the user clicks START RUN — POST body for that run (no mocked sample text). */
-  const [runPayload, setRunPayload] = useState<StartAgentPayload | null>(
+  const [runPayload, setRunPayload] = useState<StartAgentPayload | null>(null);
+  const [resumePayload, setResumePayload] = useState<ResumeAgentPayload | null>(
     null,
   );
-  const [resumePayload, setResumePayload] =
-    useState<ResumeAgentPayload | null>(null);
   const [resumeRunId, setResumeRunId] = useState(0);
   const [threadId, setThreadId] = useState<string | null>(null);
+  /** True while fetching snapshot after navigating from Past runs OPEN. */
+  const [resumeHydrateBusy, setResumeHydrateBusy] = useState(false);
 
-  /** Past runs OPEN button passes `resumeThreadId` so resume has a checkpoint thread id (still need live interrupt UX). */
-  useEffect(() => {
-    const s = location.state as { resumeThreadId?: string } | null | undefined;
-    const tid = s?.resumeThreadId;
-    if (typeof tid === "string" && tid.trim()) {
-      startTransition(() => {
-        setThreadId(tid.trim());
-      });
-    }
-  }, [location.state]);
+  /** Multi-post carousel from checkpoint `posts` (+ pending draft when paused). */
+  const [campaignSlides, setCampaignSlides] = useState<Draft[]>([]);
+  const [postViewerIndex, setPostViewerIndex] = useState(0);
+  /** Index into `campaignSlides` for Accept/Reject/Regenerate; null when not carousel-gated. */
+  const [pendingSlideIndex, setPendingSlideIndex] = useState<number | null>(
+    null,
+  );
+
+  /** Checkpoint thread id from `/dashboard/resume/:threadId` only (legacy `/form` + state redirects first). */
+  const resumeNavTid = useMemo(() => {
+    const fromParam =
+      typeof params.threadId === "string" ? params.threadId.trim() : "";
+    return fromParam;
+  }, [params.threadId]);
+
+  /** Old OPEN flow used `/form` + state; send to canonical resume URL. */
+  useLayoutEffect(() => {
+    if (location.pathname !== "/dashboard/form") return;
+    const raw = (
+      location.state as { resumeThreadId?: unknown } | null | undefined
+    )?.resumeThreadId;
+    const tid = typeof raw === "string" && raw.trim() ? raw.trim() : "";
+    if (!tid) return;
+    navigate(`/dashboard/resume/${encodeURIComponent(tid)}`, {
+      replace: true,
+      state: {},
+    });
+  }, [location.pathname, location.state, navigate]);
+
+  const isResumeContext = resumeNavTid.length > 0;
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -162,7 +228,7 @@ const FormPage = () => {
   }, []);
 
   const handleStreamChunk = useCallback(
-    (rawStreamEvent: unknown) => {
+    (rawStreamEvent: unknown, hydrateOpts?: { pastRunKeepThread?: string }) => {
       const streamEvent = normalizeStreamEvent(rawStreamEvent);
       if (!streamEvent) {
         setRunError(
@@ -213,28 +279,61 @@ const FormPage = () => {
       if (nextThreadId) setThreadId(nextThreadId);
 
       if (innerState === "awaiting_review") {
-        const extracted = extractAwaitingDraft(b);
         clearTimer();
 
+        const extracted = extractAwaitingDraft(b);
+        const fbTotal =
+          typeof b.numberOfPosts === "number" && Number.isFinite(b.numberOfPosts)
+            ? Math.min(9, Math.max(1, Math.floor(b.numberOfPosts)))
+            : numberOfPosts;
+
+        const { slides: builtSlides, pendingSlideIndex: builtPending } =
+          buildCampaignSlidesFromResultBody(
+            b,
+            "awaiting_review",
+            numberOfPosts,
+          );
+
+        let slides = builtSlides;
+        let pendIdx = builtPending;
         const content =
           extracted && typeof extracted.content === "string"
-            ? extracted.content
-            : undefined;
+            ? extracted.content.trim()
+            : "";
 
-        if (content?.trim()) {
-          const total =
-            typeof b.numberOfPosts === "number" ? b.numberOfPosts : numberOfPosts;
+        if (slides.length === 0 && content) {
+          slides = [
+            {
+              index: 1,
+              total: fbTotal,
+              publishAt: extracted
+                ? parsePublishAt(extracted.publishDate)
+                : undefined,
+              body: content,
+            },
+          ];
+          pendIdx = 0;
+        }
 
-          setInterrupt({
-            index: 1,
-            total,
-            publishAt: extracted
-              ? parsePublishAt(extracted.publishDate)
-              : undefined,
-            body: content,
-          });
+        if (slides.length > 0) {
+          const viewIdx =
+            pendIdx !== null
+              ? Math.min(Math.max(pendIdx, 0), slides.length - 1)
+              : 0;
+          const pendingDraft =
+            pendIdx !== null && slides[pendIdx]
+              ? slides[pendIdx]!
+              : slides[slides.length - 1]!;
+
+          setCampaignSlides(slides);
+          setPendingSlideIndex(pendIdx);
+          setPostViewerIndex(viewIdx);
+          setInterrupt(pendingDraft);
           setStatus("paused");
         } else {
+          setCampaignSlides([]);
+          setPendingSlideIndex(null);
+          setPostViewerIndex(0);
           setInterrupt(null);
           setRunError(
             "Agent paused for review, but no draft content was returned in the payload.",
@@ -246,42 +345,40 @@ const FormPage = () => {
 
       if (innerState === "completed") {
         clearTimer();
-        setThreadId(null);
-        const postsRaw = Array.isArray(b.posts)
-          ? (b.posts as Array<Record<string, unknown>>)
-          : [];
-        const first = postsRaw.find(
-          (p) =>
-            p &&
-            typeof p.content === "string" &&
-            String(p.content).trim().length > 0,
+        const keep = hydrateOpts?.pastRunKeepThread?.trim();
+        if (keep) setThreadId(keep);
+        else setThreadId(null);
+
+        const { slides } = buildCampaignSlidesFromResultBody(
+          b,
+          "completed",
+          numberOfPosts,
         );
-        if (first && typeof first.content === "string") {
-          const idx =
-            typeof first.postNumber === "number" && Number.isFinite(first.postNumber)
-              ? first.postNumber
-              : 1;
-          setInterrupt({
-            index: idx,
-            total:
-              typeof b.numberOfPosts === "number" ? b.numberOfPosts : numberOfPosts,
-            publishAt: parsePublishAt(first.publishDate),
-            body: first.content,
-          });
-        } else {
-          setInterrupt(null);
-        }
+        setCampaignSlides(slides);
+        setPendingSlideIndex(null);
+        setPostViewerIndex(0);
+        setInterrupt(slides[0] ?? null);
         setStatus("complete");
       }
     },
     [clearTimer, numberOfPosts],
   );
 
+  const handleStreamChunkRef = useRef(handleStreamChunk);
+  useEffect(() => {
+    handleStreamChunkRef.current = handleStreamChunk;
+  }, [handleStreamChunk]);
+
+  const prevResumeNavTidRef = useRef<string>("");
+
   const handleStreamError = useCallback(
     (_error: Error) => {
       setRunError(_error.message);
       clearTimer();
       setInterrupt(null);
+      setCampaignSlides([]);
+      setPendingSlideIndex(null);
+      setPostViewerIndex(0);
       setPipelineSteps([]);
       setRunPayload(null);
       setStreamRunId(0);
@@ -289,6 +386,89 @@ const FormPage = () => {
     },
     [clearTimer],
   );
+
+  /** Past runs OPEN: hydrate form + interrupt from snapshot (same pathway as streamed `state:result`). */
+  useEffect(() => {
+    const prev = prevResumeNavTidRef.current;
+    prevResumeNavTidRef.current = resumeNavTid;
+
+    if (!resumeNavTid) {
+      startTransition(() => setResumeHydrateBusy(false));
+      if (prev) {
+        startTransition(() => setThreadId(null));
+        startTransition(() => {
+          setCampaignSlides([]);
+          setPendingSlideIndex(null);
+          setPostViewerIndex(0);
+        });
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    startTransition(() => {
+      setThreadId(resumeNavTid);
+      setResumeHydrateBusy(true);
+    });
+
+    void (async () => {
+      setRunError(null);
+      clearTimer();
+      setInterrupt(null);
+      setCampaignSlides([]);
+      setPendingSlideIndex(null);
+      setPostViewerIndex(0);
+      setPipelineSteps([]);
+      setResumePayload(null);
+      setResumeRunId(0);
+      setRunPayload(null);
+      setStreamRunId(0);
+      try {
+        const raw = await getAgentThreadSnapshot(resumeNavTid);
+        if (cancelled) return;
+
+        const b =
+          coerceResultBody(raw) ??
+          unwrapEnvelopeBody(raw) ??
+          (typeof raw === "object" && raw !== null && !Array.isArray(raw)
+            ? (raw as Record<string, unknown>)
+            : null);
+        if (!b) {
+          setRunError(
+            "Could not parse thread snapshot returned by the server.",
+          );
+          return;
+        }
+
+        if (typeof b.url === "string" && b.url.trim()) setUrl(b.url.trim());
+        if (
+          typeof b.numberOfPosts === "number" &&
+          Number.isFinite(b.numberOfPosts)
+        ) {
+          setNumberOfPosts(
+            Math.min(9, Math.max(1, Math.floor(b.numberOfPosts))),
+          );
+        }
+        const localStart = isoToDatetimeLocal(b.startDate);
+        if (localStart) setStartDate(localStart);
+
+        handleStreamChunkRef.current(
+          { status: "ok", state: "result", body: b },
+          { pastRunKeepThread: resumeNavTid },
+        );
+      } catch (err: unknown) {
+        if (!cancelled) setRunError(threadsListErrorMessage(err));
+      } finally {
+        if (!cancelled) startTransition(() => setResumeHydrateBusy(false));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      startTransition(() => setResumeHydrateBusy(false));
+    };
+  }, [resumeNavTid, clearTimer]);
 
   const { error: streamError } = useAgentStream<unknown>({
     url: START_AGENT_PATH,
@@ -331,8 +511,16 @@ const FormPage = () => {
         ? new Date(startDate).toISOString()
         : new Date().toISOString(),
     });
+    if (location.pathname.startsWith("/dashboard/resume/")) {
+      navigate("/dashboard/form", { replace: true, state: {} });
+    } else {
+      navigate(".", { replace: true, state: {} });
+    }
     clearTimer();
     setInterrupt(null);
+    setCampaignSlides([]);
+    setPendingSlideIndex(null);
+    setPostViewerIndex(0);
     setThreadId(null);
     setResumePayload(null);
     setResumeRunId(0);
@@ -347,6 +535,9 @@ const FormPage = () => {
     clearTimer();
     setStatus("idle");
     setInterrupt(null);
+    setCampaignSlides([]);
+    setPendingSlideIndex(null);
+    setPostViewerIndex(0);
     setThreadId(null);
     setResumePayload(null);
     setResumeRunId(0);
@@ -372,6 +563,9 @@ const FormPage = () => {
     });
     clearTimer();
     setInterrupt(null);
+    setCampaignSlides([]);
+    setPendingSlideIndex(null);
+    setPostViewerIndex(0);
     setPipelineSteps([]);
     setStatus("connecting");
     setResumeRunId((version) => version + 1);
@@ -396,16 +590,101 @@ const FormPage = () => {
 
   const isRunning = status !== "idle" && status !== "complete";
 
+  const effectiveViewerIndex = useMemo(() => {
+    if (campaignSlides.length === 0) return 0;
+    return Math.min(Math.max(postViewerIndex, 0), campaignSlides.length - 1);
+  }, [campaignSlides.length, postViewerIndex]);
+
+  const viewedDraft = useMemo((): Draft | null => {
+    if (campaignSlides.length > 0)
+      return campaignSlides[effectiveViewerIndex] ?? null;
+    return interrupt;
+  }, [campaignSlides, effectiveViewerIndex, interrupt]);
+
+  const awaitingPaused = status === "paused";
+
+  const decisionButtonsEnabled =
+    awaitingPaused &&
+    interrupt !== null &&
+    (pendingSlideIndex === null ||
+      effectiveViewerIndex === pendingSlideIndex);
+
+  const browseHint =
+    awaitingPaused &&
+    pendingSlideIndex !== null &&
+    !decisionButtonsEnabled &&
+    viewedDraft !== null
+      ? `Accept, Reject, and Regenerate apply to post ${campaignSlides[pendingSlideIndex]?.index ?? "—"} — use the arrows to switch to that post.`
+      : null;
+
+  const carouselNav =
+    campaignSlides.length > 1
+      ? {
+          canGoPrev: effectiveViewerIndex > 0,
+          canGoNext: effectiveViewerIndex < campaignSlides.length - 1,
+          onPrev: () =>
+            setPostViewerIndex((i) => {
+              if (campaignSlides.length === 0) return 0;
+              const capped = Math.min(
+                Math.max(i, 0),
+                campaignSlides.length - 1,
+              );
+              return Math.max(0, capped - 1);
+            }),
+          onNext: () =>
+            setPostViewerIndex((i) => {
+              const last = campaignSlides.length - 1;
+              if (last < 0) return 0;
+              const capped = Math.min(Math.max(i, 0), last);
+              return Math.min(last, capped + 1);
+            }),
+        }
+      : null;
+
   return (
     <div className="px-6 py-8 lg:px-10 lg:py-10">
       <header className="mb-8 flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          New run
+          {isResumeContext ? "Resume campaign" : "New run"}
         </h1>
         <p className="max-w-2xl text-base text-black/65 dark:text-white/65">
-          Configure your campaign and review AI-generated content before
-          publishing.
+          {isResumeContext ? (
+            <>
+              Pick up where you left off—review the draft or continue the run.
+            </>
+          ) : (
+            <>
+              Configure your campaign and review AI-generated content before
+              publishing.
+            </>
+          )}
         </p>
+        {isResumeContext ? (
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Link
+              to="/dashboard/pastRun"
+              className="inline-flex items-center gap-2 rounded-xl border border-black/15 bg-white/70 px-3.5 py-2 text-sm font-medium text-neutral-900 shadow-xs transition-colors hover:bg-white dark:border-white/15 dark:bg-white/8 dark:text-neutral-50 dark:hover:bg-white/12"
+              aria-label="Back to runs list"
+            >
+              <span aria-hidden className="-ml-0.5 text-base leading-none">
+                ←
+              </span>
+              Back to runs
+            </Link>
+            <span
+              className="inline-flex items-center rounded-md border border-black/15 bg-black/3 px-2 py-0.5 font-mono text-xs text-black/75 dark:border-white/15 dark:bg-white/6 dark:text-white/75"
+              title={resumeNavTid}
+              aria-label={`Run id ${resumeNavTid}`}
+            >
+              Run ID · {threadIdDisplayLabel(resumeNavTid)}
+            </span>
+          </div>
+        ) : null}
+        {isResumeContext && resumeHydrateBusy ? (
+          <p className="text-sm text-black/60 dark:text-white/60">
+            Loading run snapshot…
+          </p>
+        ) : null}
         {runError ? (
           <p className="mt-2 max-w-2xl text-sm text-red-600 dark:text-red-400">
             {runError}
@@ -432,8 +711,11 @@ const FormPage = () => {
         />
         <HumanReviewPanel
           status={status}
-          draft={interrupt}
+          draft={viewedDraft}
           pipelineSteps={pipelineSteps}
+          carouselNav={carouselNav}
+          decisionButtonsEnabled={decisionButtonsEnabled}
+          browseHint={browseHint}
           onAccept={accept}
           onReject={reject}
           onRegenerate={regenerate}

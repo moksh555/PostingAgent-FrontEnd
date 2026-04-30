@@ -1,19 +1,31 @@
 import { useState } from "react";
 import { Button } from "../ui";
-import { CheckIcon, RefreshIcon, XIcon } from "./icons";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, RefreshIcon, XIcon } from "./icons";
 import type { Draft } from "./types";
 
 type CurrentDraftReviewProps = {
   draft: Draft;
   awaitingDecision: boolean;
+  /** When false, paused but user is viewing another post in the carousel. */
+  decisionButtonsEnabled: boolean;
+  browseHint?: string | null;
   onAccept: () => void;
   onReject: () => void;
   onRegenerate: (notes: string) => void;
+  carouselNav?: {
+    canGoPrev: boolean;
+    canGoNext: boolean;
+    onPrev: () => void;
+    onNext: () => void;
+  } | null;
 };
 
 const CurrentDraftReview = ({
   draft,
   awaitingDecision,
+  decisionButtonsEnabled,
+  browseHint = null,
+  carouselNav = null,
   onAccept,
   onReject,
   onRegenerate,
@@ -38,13 +50,42 @@ const CurrentDraftReview = ({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5">
-      <div className="flex items-baseline gap-3">
-        <h3 className="text-xl font-semibold tracking-tight">
-          Post {draft.index} of {draft.total}
-        </h3>
-        {draft.publishAt && (
-          <span className="text-xs text-black/55 dark:text-white/55">{draft.publishAt}</span>
-        )}
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-3">
+          <h3
+            className="text-xl font-semibold tracking-tight"
+            aria-live="polite"
+          >
+            Post {draft.index} of {draft.total}
+          </h3>
+          {draft.publishAt && (
+            <span className="text-xs text-black/55 dark:text-white/55">
+              {draft.publishAt}
+            </span>
+          )}
+        </div>
+        {carouselNav ? (
+          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-black/10 bg-white/60 p-0.5 dark:border-white/10 dark:bg-white/6">
+            <button
+              type="button"
+              aria-label="Previous post"
+              onClick={carouselNav.onPrev}
+              disabled={!carouselNav.canGoPrev}
+              className="rounded-lg p-2 text-black/70 transition enabled:hover:bg-black/6 enabled:hover:text-black disabled:opacity-35 dark:text-white/75 dark:enabled:hover:bg-white/10 dark:enabled:hover:text-white"
+            >
+              <ChevronLeftIcon size={20} />
+            </button>
+            <button
+              type="button"
+              aria-label="Next post"
+              onClick={carouselNav.onNext}
+              disabled={!carouselNav.canGoNext}
+              className="rounded-lg p-2 text-black/70 transition enabled:hover:bg-black/6 enabled:hover:text-black disabled:opacity-35 dark:text-white/75 dark:enabled:hover:bg-white/10 dark:enabled:hover:text-white"
+            >
+              <ChevronRightIcon size={20} />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <article
@@ -56,6 +97,12 @@ const CurrentDraftReview = ({
       >
         {draft.body}
       </article>
+
+      {browseHint ? (
+        <p className="text-xs leading-snug text-black/55 dark:text-white/55">
+          {browseHint}
+        </p>
+      ) : null}
 
       {notesOpen && (
         <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-black/55 dark:text-white/55">
@@ -82,7 +129,7 @@ const CurrentDraftReview = ({
         <Button
           variant="outline"
           onClick={onAccept}
-          disabled={!awaitingDecision}
+          disabled={!decisionButtonsEnabled}
           className="w-full justify-center"
         >
           <CheckIcon />
@@ -91,7 +138,7 @@ const CurrentDraftReview = ({
         <Button
           variant="outline"
           onClick={onReject}
-          disabled={!awaitingDecision}
+          disabled={!decisionButtonsEnabled}
           className="w-full justify-center"
         >
           <XIcon />
@@ -100,7 +147,7 @@ const CurrentDraftReview = ({
         <Button
           variant="outline"
           onClick={handleRegenerate}
-          disabled={!awaitingDecision}
+          disabled={!decisionButtonsEnabled}
           className="w-full justify-center"
         >
           <RefreshIcon />
@@ -108,7 +155,7 @@ const CurrentDraftReview = ({
         </Button>
       </div>
 
-      {awaitingDecision && (
+      {awaitingDecision && decisionButtonsEnabled && (
         <button
           type="button"
           onClick={() => setNotesOpen((open) => !open)}

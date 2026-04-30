@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useMatch } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import {
   CogIcon,
@@ -39,6 +39,44 @@ const disabledItem =
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   [baseItem, isActive ? activeItem : idleItem].join(" ");
 
+function DashboardSidebarNav() {
+  const resumeMatch = useMatch("/dashboard/resume/:threadId");
+
+  return (
+    <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
+      {NAV_ITEMS.map(({ label, icon: Icon, to, end }) =>
+        to ? (
+          <NavLink
+            key={label}
+            to={to}
+            className={
+              to === "/dashboard/pastRun"
+                ? ({ isActive }) =>
+                    linkClass({
+                      isActive: isActive || Boolean(resumeMatch),
+                    })
+                : linkClass
+            }
+            end={end}
+          >
+            <Icon size={18} />
+            <span>{label}</span>
+          </NavLink>
+        ) : (
+          <span
+            key={label}
+            className={[baseItem, disabledItem].join(" ")}
+            aria-disabled="true"
+          >
+            <Icon size={18} />
+            <span>{label}</span>
+          </span>
+        ),
+      )}
+    </nav>
+  );
+}
+
 const DashboardSidebar = () => (
   <aside
     className={[
@@ -61,21 +99,7 @@ const DashboardSidebar = () => (
       </span>
     </Link>
 
-    <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
-      {NAV_ITEMS.map(({ label, icon: Icon, to, end }) =>
-        to ? (
-          <NavLink key={label} to={to} className={linkClass} end={end}>
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ) : (
-          <span key={label} className={[baseItem, disabledItem].join(" ")} aria-disabled="true">
-            <Icon size={18} />
-            <span>{label}</span>
-          </span>
-        ),
-      )}
-    </nav>
+    <DashboardSidebarNav />
 
     <button
       type="button"
