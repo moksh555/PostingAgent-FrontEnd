@@ -1,73 +1,25 @@
-# React + TypeScript + Vite
+# Posting Agent — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web UI for **campaign setup**, **streaming agent runs**, and **human-in-the-loop review**: start a LangGraph-backed run against the backend, stream pipeline updates + NDJSON chunks, pause at draft review (**Accept / Reject / Regenerate** with **`resumeAgent`**), browse **past runs / thread states** per user via **`getUserThreadStates`**, and skim **Overview**, **marketing home**, and design-oriented dashboard chrome.
 
-Currently, two official plugins are available:
+Runs as a SPA next to FastAPI (**dev:** Vite proxies **`/api`** to the backend; env lives under **`configurations/`**, e.g. **`VITE_DEV_USER_ID`**, **`VITE_BASE_URL`**).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+| Area        | Choices |
+|------------|---------|
+| UI         | **React 19**, **React Router 7**, **Tailwind CSS v4** (via **`@tailwindcss/vite`**) |
+| Tooling    | **Vite 8**, **TypeScript** (~6), **ESLint** + **typescript-eslint**, **eslint-plugin-react-hooks** |
+| HTTP       | **Axios** |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scripts
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # http://localhost:5173 — restart after changing configurations/.env*
+npm run build
+npm run lint
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Backend API this app talks to belongs in the **PostingAgent** (Python/FastAPI) repo
