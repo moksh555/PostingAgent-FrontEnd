@@ -2,20 +2,20 @@
 
 This folder is **`PostingAgent-FrontEnd`** (its **own Git repo** — `origin` → `PostingAgent-FrontEnd.git`; `main` tracks `origin/main`). Do **not** point the baseline at the MarketingAgent **backend** mono-repo’s SHAs (`69e9100`, …); use **this** repo’s `git log`.
 
-**HEAD** `195203711dc6766bd3fda8eef1b110cfbe8cbab8` — _connected to apis_
+**HEAD** `c5da19d8a31a1ebf4eb9cdb283f0113b37a147ff` — _updated readme_
 
-**Previous two commits (for changelog-style context):**
+**Last two commits (changelog-style):**
 
-| Short     | Subject                                                            |
-| --------- | ------------------------------------------------------------------ |
-| `1952037` | connected to apis                                                  |
-| `0819713` | update progress.md: made readme file for cursor agent to work with |
+| Short     | Subject                             |
+| --------- | ----------------------------------- |
+| `c5da19d` | updated readme                      |
+| `094f681` | made last run functionality working |
 
-**Current:** working tree (uncommitted changes may exist outside the last push) — after you **commit**, refresh the table above and add **Stage N** bullets.
+**Current:** after you **commit**, bump **HEAD** and the table, and extend **Stage N** below if behavior changes.
 
 ---
 
-Earlier work below is grouped by **stage** (dependency order). **Stage 9** matches the latest pushed commit (`1952037`).
+Earlier work below is grouped by **stage** (dependency order). **Stages 9–11** summarize recent shipped work (**Stage 11** ↔ **HEAD**).
 
 ## Stage 1 — Foundation
 
@@ -54,7 +54,7 @@ Earlier work below is grouped by **stage** (dependency order). **Stage 9** match
 ## Stage 6 — Runs
 
 - **`PastRun`**: page shell + header + stats row.
-- **`components/runs/`**: `RunListStatus` / `RunSummary`, `RunStatusPill`, `RunsSummaryStats`, `RunsTable` / `RunCard` / `RunsList`, `format.ts`; sample data; `OPEN` → future detail route.
+- **`components/runs/`**: `RunListStatus` / `RunSummary`, `RunStatusPill`, `RunsSummaryStats`, `RunsTable` / `RunCard` / `RunsList`, `format.ts`; list wiring to live API (**Stage 10**); **`OPEN`** → **`/dashboard/form`** with **`resumeThreadId`** in router state (**Stage 10**).
 
 ## Stage 7 — Overview + shared stats primitive
 
@@ -76,6 +76,19 @@ Earlier work below is grouped by **stage** (dependency order). **Stage 9** match
 - **`agentStreamNormalize.ts`**, **`types.ts`**, **`formatPipelineStepLabel.ts`** — event parsing and UI labels.
 - **`HumanReviewPanel`**, **`CurrentDraftReview`**, **`CampaignSetupForm`** — review UI and validation (e.g. regenerate requires feedback).
 - **`StateLessApiClient.ts`**, **`agentServices.ts`**, **`.env.production`**, **`vite-env.d.ts`** — API base URL and env typing.
+
+## Stage 10 — Past runs listing + row normalization (`094f681`)
+
+- **`ServicesAgent.ts`** — **`getUserThreadStates`**, **`normalizeUserThreadStateRow`**, **`threadsListErrorMessage`**; **`GET /api/v1/getUserThreadStates/:userId`**; maps backend **`Paused` / `Assigned` / `Completed`** → UI statuses; sorts by **`startedAt`** desc.
+- **`PastRun.tsx`** — **`useEffect`** load with **`VITE_DEV_USER_ID`** ( **`configurations/.env.local`** ); loading / empty / FastAPI **`AppError`**-shaped Axios payloads (`message`); **`buildStats`** on live rows.
+- **`types.ts` (`runs`)** — **`RunSummary`** shape matches **`RunsTable`** / **`RunCard`** (**`id`**, **`startedAt`**, **`url`**, **`postsDone`**, **`postsTotal`**, **`threadId`**).
+- **`RunStatusPill.tsx`** — three pill labels aligned with API (**Assigned / Paused — review / Completed**).
+- **`ApiClient.ts`** — **`VITE_BASE_URL`** ( **`envDir`** = **`configurations/`** ).
+- **`FormPage.tsx`** — **`location.state.resumeThreadId`** bridged via **`startTransition`** so **OPEN** from runs can hydrate **`threadId`** for resume flow.
+
+## Stage 11 — README (`c5da19d`)
+
+- **`README.md`** — project purpose (dashboard, streaming agent, HITL), stack table (React / Vite / Tailwind / Router / Axios), dev scripts, proxy + env pointers.
 
 ---
 
