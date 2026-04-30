@@ -1,10 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import {
-  BanIcon,
-  CheckIcon,
-  PauseIcon,
-  XIcon,
-} from "../dashboard/icons";
+import { CheckIcon, PauseIcon } from "../dashboard/icons";
 import type { RunListStatus } from "./types";
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
@@ -15,12 +10,11 @@ type StatusMeta = {
   pulse?: boolean;
 };
 
+/** Mirrors backend: Assigned / Paused / Completed (`ServicesAgent.mapApiStatus`). */
 const STATUS_META: Record<RunListStatus, StatusMeta> = {
-  running: { label: "Running", pulse: true },
+  running: { label: "Assigned", pulse: true },
   paused: { label: "Paused — review", icon: PauseIcon },
-  complete: { label: "Complete", icon: CheckIcon },
-  failed: { label: "Failed", icon: XIcon },
-  cancelled: { label: "Cancelled", icon: BanIcon },
+  complete: { label: "Completed", icon: CheckIcon },
 };
 
 const RunStatusPill = ({ status }: { status: RunListStatus }) => {

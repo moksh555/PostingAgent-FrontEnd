@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, startTransition } from "react";
+import { useLocation } from "react-router-dom";
 import CampaignSetupForm from "../components/dashboard/CampaignSetupForm";
 import HumanReviewPanel from "../components/dashboard/HumanReviewPanel";
 import { formatPipelineStepLabel } from "../components/dashboard/formatPipelineStepLabel";
@@ -117,6 +118,7 @@ function normalizeStreamEvent(raw: unknown): AgentStreamEvent | null {
 }
 
 const FormPage = () => {
+  const location = useLocation();
   const [url, setUrl] = useState("");
   const [numberOfPosts, setNumberOfPosts] = useState(3);
   const [startDate, setStartDate] = useState("");
@@ -140,6 +142,17 @@ const FormPage = () => {
     useState<ResumeAgentPayload | null>(null);
   const [resumeRunId, setResumeRunId] = useState(0);
   const [threadId, setThreadId] = useState<string | null>(null);
+
+  /** Past runs OPEN button passes `resumeThreadId` so resume has a checkpoint thread id (still need live interrupt UX). */
+  useEffect(() => {
+    const s = location.state as { resumeThreadId?: string } | null | undefined;
+    const tid = s?.resumeThreadId;
+    if (typeof tid === "string" && tid.trim()) {
+      startTransition(() => {
+        setThreadId(tid.trim());
+      });
+    }
+  }, [location.state]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {

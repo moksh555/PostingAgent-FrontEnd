@@ -1,18 +1,13 @@
-export type RunListStatus =
-  | "running"
-  | "paused"
-  | "complete"
-  | "failed"
-  | "cancelled";
+export type RunListStatus = "running" | "paused" | "complete";
 
 export type RunSummary = {
   id: string;
+  threadId: string;
   status: RunListStatus;
   startedAt: string;
   url: string;
   postsDone: number;
   postsTotal: number;
-  threadId: string;
 };
 
 export type RunsStats = {
