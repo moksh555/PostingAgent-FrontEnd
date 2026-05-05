@@ -68,7 +68,7 @@ const ThemeOverflowMenu = () => {
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left font-medium text-black hover:bg-black/[0.06] dark:text-white dark:hover:bg-white/10"
+            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left font-medium text-black hover:bg-black/6 dark:text-white dark:hover:bg-white/10"
             onClick={() => chooseTheme("light")}
           >
             Light
@@ -77,7 +77,7 @@ const ThemeOverflowMenu = () => {
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left font-medium text-black hover:bg-black/[0.06] dark:text-white dark:hover:bg-white/10"
+            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left font-medium text-black hover:bg-black/6 dark:text-white dark:hover:bg-white/10"
             onClick={() => chooseTheme("dark")}
           >
             Dark

@@ -5,7 +5,7 @@
 const GoogleOneTapPlaceholder = () => (
   <div
     id="google-one-tap-mount"
-    className="fixed bottom-6 right-6 z-[60] min-h-[48px] w-[min(400px,calc(100vw-2rem))] max-w-full"
+    className="fixed bottom-6 right-6 z-60 min-h-12 w-[min(400px,calc(100vw-2rem))] max-w-full"
     aria-hidden
   />
 );

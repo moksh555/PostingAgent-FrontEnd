@@ -17,7 +17,7 @@ const GoogleAuthBlock = ({
         type="button"
         disabled={disabled}
         onClick={onContinueGoogle}
-        className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-black/15 bg-black/[0.03] px-4 py-3.5 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-55 dark:border-white/15 dark:bg-white/[0.06] dark:text-white"
+        className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-black/15 bg-black/3 px-4 py-3.5 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-55 dark:border-white/15 dark:bg-white/6 dark:text-white"
       >
         <GoogleGIcon className="h-5 w-5 shrink-0" />
         Continue with Google

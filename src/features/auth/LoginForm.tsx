@@ -118,7 +118,7 @@ const LoginForm = () => {
 
             {formError ? (
               <p
-                className="rounded-lg border border-black/10 bg-black/[0.03] px-3 py-2 text-sm text-black/75 dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70"
+                className="rounded-lg border border-black/10 bg-black/3 px-3 py-2 text-sm text-black/75 dark:border-white/10 dark:bg-white/6 dark:text-white/70"
                 role="alert"
               >
                 {formError}
