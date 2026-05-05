@@ -1,5 +1,7 @@
 interface ImportMetaEnv {
   readonly VITE_BASE_URL?: string;
+  /** Auth microservice origin, e.g. `http://127.0.0.1:8000` (no trailing slash). Falls back to that in dev. */
+  readonly VITE_AUTH_BASE_URL?: string;
   readonly VITE_DEBUG_AGENT_STREAM?: string;
   /** Optional; POST /startAgent expects `userId` — set for local demos if you have none. */
   readonly VITE_DEV_USER_ID?: string;

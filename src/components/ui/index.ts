@@ -1,4 +1,5 @@
 export { default as Button } from "./Button";
+export { default as TextField } from "./TextField";
 export type { ButtonVariant, ButtonSize } from "./Button";
 
 export { default as Eyebrow } from "./Eyebrow";

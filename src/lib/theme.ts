@@ -1,5 +1,7 @@
 const STORAGE_KEY = "marketing-agent-theme";
 
+export const THEME_CHANGE_EVENT = "marketing-agent-theme";
+
 export type Theme = "light" | "dark";
 
 /** Call once on startup; respects `localStorage` or leaves `<html class="dark">` default. */
@@ -16,6 +18,7 @@ export function getTheme(): Theme {
 export function setTheme(theme: Theme): void {
   document.documentElement.classList.toggle("dark", theme === "dark");
   localStorage.setItem(STORAGE_KEY, theme);
+  window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT));
 }
 
 export function toggleTheme(): void {

@@ -8,6 +8,8 @@ import {
   StreamPreview,
 } from "../components/ui";
 import type { Stat, StreamPreviewItem } from "../components/ui";
+import { useAuth } from "../features/auth/AuthContext";
+import { routes } from "../config/routes";
 
 const steps = [
   {
@@ -71,6 +73,9 @@ const previewItems: StreamPreviewItem[] = [
 ];
 
 const HomePage = () => {
+  const { status } = useAuth();
+  const isAuthed = status === "authenticated";
+
   return (
     <div className="relative">
       {/* HERO ------------------------------------------------------------- */}
@@ -116,12 +121,25 @@ const HomePage = () => {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <Button to="/dashboard/form" variant="invert" showArrow>
-              Start a campaign
-            </Button>
-            <Button to="/dashboard" variant="outline">
-              Open dashboard
-            </Button>
+            {isAuthed ? (
+              <>
+                <Button to="/dashboard/form" variant="invert" showArrow>
+                  Start a campaign
+                </Button>
+                <Button to="/dashboard" variant="outline">
+                  Open dashboard
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button to={routes.login} variant="invert" showArrow>
+                  Sign in to start
+                </Button>
+                <Button to={routes.register} variant="outline">
+                  Create account
+                </Button>
+              </>
+            )}
           </div>
 
           <StreamPreview

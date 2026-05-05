@@ -16,12 +16,6 @@ const baseProps = (size: number, props: Omit<IconProps, "size">) => ({
   ...props,
 });
 
-export const SparkleIcon = ({ size = 18, ...props }: IconProps) => (
-  <svg {...baseProps(size, props)}>
-    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
-  </svg>
-);
-
 export const HomeIcon = ({ size = 18, ...props }: IconProps) => (
   <svg {...baseProps(size, props)}>
     <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />

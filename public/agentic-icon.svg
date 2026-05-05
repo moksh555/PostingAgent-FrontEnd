@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#111111"/>
+  <g transform="translate(60,60)">
+    <polygon points="0,-34 29,-17 29,17 0,34 -29,17 -29,-17" fill="none" stroke="#e8e8e8" stroke-width="1.4"/>
+    <line x1="-29" y1="-17" x2="29" y2="17" stroke="#e8e8e8" stroke-width="0.9" opacity="0.35"/>
+    <line x1="-29" y1="17" x2="29" y2="-17" stroke="#e8e8e8" stroke-width="0.9" opacity="0.35"/>
+    <line x1="0" y1="-34" x2="0" y2="34" stroke="#e8e8e8" stroke-width="0.9" opacity="0.35"/>
+    <circle cx="-29" cy="-17" r="4" fill="#e8e8e8"/>
+    <circle cx="29" cy="-17" r="4" fill="#e8e8e8"/>
+    <circle cx="0" cy="-34" r="4" fill="#e8e8e8"/>
+    <circle cx="-29" cy="17" r="3" fill="#e8e8e8" opacity="0.35"/>
+    <circle cx="29" cy="17" r="3" fill="#e8e8e8" opacity="0.35"/>
+    <circle cx="0" cy="34" r="3" fill="#e8e8e8" opacity="0.35"/>
+    <circle cx="0" cy="0" r="6" fill="#e8e8e8"/>
+  </g>
+</svg>

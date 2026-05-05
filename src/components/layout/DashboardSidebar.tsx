@@ -1,12 +1,12 @@
 import { Link, NavLink, useMatch } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
+import { AgenticNavLockup } from "../branding/AgenticMark";
 import {
   CogIcon,
   HomeIcon,
   ListIcon,
   LogoutIcon,
   PlusCircleIcon,
-  SparkleIcon,
 } from "../dashboard/icons";
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
@@ -84,19 +84,12 @@ const DashboardSidebar = () => (
       "dark:border-white/10 dark:bg-black/40",
     ].join(" ")}
   >
-    <Link to="/" className="flex items-center gap-3">
-      <span
-        className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white/60 text-black dark:border-white/10 dark:bg-white/10 dark:text-white"
-        aria-hidden
-      >
-        <SparkleIcon size={18} />
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="text-lg font-semibold tracking-tight">Agentic</span>
-        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.22em] text-black/55 dark:text-white/55">
-          Marketing agent
-        </span>
-      </span>
+    <Link
+      to="/"
+      className="flex min-w-0 shrink-0 items-center rounded-lg outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-black/25 dark:ring-offset-black dark:focus-visible:ring-white/30"
+      aria-label="Home"
+    >
+      <AgenticNavLockup />
     </Link>
 
     <DashboardSidebarNav />
